@@ -6,6 +6,7 @@ from datetime import date, time, datetime
 from streamlit_option_menu import option_menu
 from TransportFeedbackSim import TFSim
 from visualize import *
+from visualize import plot_midway_blood_demand  # Ensure this specific import
 from BloodProductStorage import BloodProductStorage
 from platoon import Platoon, PlatoonDemand
 

@@ -127,14 +127,14 @@ def show_transport_info():
 
 def main():
     load_saved_data()
-    selected = option_menu(
-        menu_title="Main Menu",
-        options=["Home", "Medical Logistics Company", "Transport Info", "Conflict Prediction"],
-        icons=["house", "hospital", "truck", "exclamation-triangle"],
-        menu_icon="cast",
-        default_index=0,
-        key="main_menu_selection"
-    )
+    with st.sidebar:
+        selected = option_menu(
+            menu_title="Main Menu",
+            options=["Home", "Medical Logistics Company", "Transport Info", "Conflict Prediction"],
+            icons=["house", "hospital", "truck", "exclamation-triangle"],
+            menu_icon="cast",
+            default_index=0
+        )
     if selected == "Home":
         show_home()
     elif selected == "Medical Logistics Company":

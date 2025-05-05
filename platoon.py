@@ -21,8 +21,17 @@ class Platoon:
     if avgInterval > maxInterval:
       avgInterval = maxInterval  # Prevent invalid triangular distribution
 
+    avgInterval = max(avgInterval, 1)
+
+  # Set minInterval valid for triangular distribution
     minInterval = max(1, avgInterval - (maxInterval - avgInterval))
-    self.orderCountDown = round(np.random.triangular(minInterval, avgInterval, maxInterval))
+
+  # Final safety check: enforce min ≤ mode ≤ max
+    mode = avgInterval
+    left = min(minInterval, mode)
+    right = max(maxInterval, mode)
+
+    self.orderCountDown = round(np.random.triangular(left, mode, right))
     self.runningDemand = [0,0] #resets when an order is placed
     self.avgOrderInterval = avgInterval
     self.maxOrderInterval = maxInterval

@@ -1,0 +1,29 @@
+from transport import Transport
+'''
+# Helper function to print test results
+def print_test_result(test_name, condition):
+    if condition:
+        print(f" {test_name} passed")
+    else:
+        print(f" {test_name} failed")
+
+# Test: Initialization
+transport1 = Transport(sp=2, cap=100, count=3, name="Ambulance")
+print_test_result("Transport Initialization",
+    transport1.speed == 2 and transport1.capacity == 100 and transport1.departureCount == 3 and transport1.name == "Ambulance")
+
+# Test: String Representation (__str__)
+expected_str = "Name: Ambulance. Departure Count: 3. Speed: 2. Capacity: 100."
+print_test_result("String Representation (__str__)", str(transport1) == expected_str)
+
+# Test: Representation (__repr__)
+expected_repr = "Name: Ambulance. Departure Count: 3. Speed: 2. Capacity: 100."
+print_test_result("Representation (__repr__)", repr(transport1) == expected_repr)
+
+# Test: Transport with Different Attributes
+transport2 = Transport(sp=3, cap=200, count=5, name="Helicopter")
+print_test_result("Different Attributes",
+    transport2.speed == 3 and transport2.capacity == 200 and transport2.departureCount == 5 and transport2.name == "Helicopter")
+
+print("\nAll tests completed.")
+'''

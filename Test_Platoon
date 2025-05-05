@@ -1,0 +1,64 @@
+import numpy as np
+from platoon import Platoon
+from BloodProductStorage import BloodProductStorage
+from BloodInventoryUnit import BloodInventoryUnit
+'''
+# Helper function for testing
+def print_test_result(test_name, condition):
+    if condition:
+        print(f" {test_name} passed")
+    else:
+        print(f" {test_name} failed")
+
+# Initialize blood storage
+fwb_inventory = BloodProductStorage([(10, 5, 0), (5, 3, 0)])  # 15 total FWB units
+plasma_inventory = BloodProductStorage([(8, 4, 0), (4, 2, 0)])  # 12 total Plasma units
+combat_levels = [0.5, 0.3, 0.2]  # Must sum to 1
+order_interval = 3
+
+# Create platoon instance
+platoon = Platoon(2, fwb_inventory, plasma_inventory, combat_levels, order_interval)
+
+# Test: Initialization
+print_test_result("Platoon Initialization", 
+    platoon.location == 2 and 
+    platoon.orderCountDown == 3 and 
+    platoon.runningDemand == [0, 0] and 
+    np.isclose(sum(platoon.combatLevelList), 1.0))
+
+# Test: Combat level updates
+initial_combat_level = platoon.combatLevel
+platoon.updateCombatLevel()
+print_test_result("Update Combat Level", platoon.combatLevel != initial_combat_level)
+
+# Test: Adding Inventory
+platoon.addInventory('FWB', 5, 7, 1)
+platoon.addInventory('Plasma', 3, 6, 2)
+fwb_total = platoon.FWBinventory.avail()
+plasma_total = platoon.Plasmainventory.avail()
+print_test_result("Add Inventory (FWB)", fwb_total == 20)  # 15 initial + 5 added
+print_test_result("Add Inventory (Plasma)", plasma_total == 15)  # 12 initial + 3 added
+
+# Test: Usage and Unmet Demand
+unmet_demand, demand = platoon.usage()
+print_test_result("Usage: Demand is non-negative", demand[0] >= 0 and demand[1] >= 0)
+
+# Test: Time Step
+initial_order_count = platoon.orderCountDown
+order_result, unmet_fwb, unmet_plasma, expired_fwb, expired_plasma = platoon.timeStep()
+print_test_result("Time Step: Order countdown decreases", platoon.orderCountDown == initial_order_count - 1)
+print_test_result("Time Step: Unmet demand is non-negative", unmet_fwb >= 0 and unmet_plasma >= 0)
+print_test_result("Time Step: Expired blood is non-negative", expired_fwb >= 0 and expired_plasma >= 0)
+
+# Test: Total Inventory
+total_inventory = platoon.totalInventory()
+print_test_result("Total Inventory", total_inventory == [20, 15])  # Expected: 20 FWB, 15 Plasma
+
+# Test: Order Placement
+platoon.runningDemand = [10, 5]
+order = platoon.placeOrder()
+print_test_result("Place Order: Order matches demand", order == [10, 5])
+print_test_result("Place Order: Running demand resets", platoon.runningDemand == [0, 0])
+
+print("\nAll tests completed.")
+'''

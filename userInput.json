@@ -1,0 +1,18 @@
+import streamlit as st
+import json
+st.title("Create a JSON File")
+name=st.text_input("Enter name")
+age=st.number_input("Enter age",min_value=0)
+city=st.text_input("Enter city")
+
+#create JSON
+data={"name":name,"age":age,"city":city}
+
+#convert to JSON string
+json_string=json.dumps(data,indent=4)
+
+#show preview
+st.subheader("Generated JSON:")
+
+#download JSON
+st.download_button("Download JSON File",json_string,"user_data.json","application/json")

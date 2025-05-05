@@ -1,0 +1,73 @@
+from Company import Company
+from transport import Transport
+from BloodProductStorage import BloodProductStorage
+from platoon import Platoon
+'''
+# Helper function for testing
+def print_test_result(test_name, condition):
+    if condition:
+        print(f" {test_name} passed")
+    else:
+        print(f" {test_name} failed")
+
+# Setup test data
+fwb_inventory = BloodProductStorage([(20, 10, 0), (15, 5, 0)])  # 35 total FWB units
+plasma_inventory = BloodProductStorage([(10, 7, 0), (5, 3, 0)])  # 15 total Plasma units
+
+transport1 = Transport(sp=2, cap=100, count=3, name="Truck")
+transport2 = Transport(sp=3, cap=50, count=5, name="Helicopter")
+transports = [transport1, transport2]
+
+platoon1 = Platoon(loc=2, FWBinventory=BloodProductStorage([(5, 3, 0)]),
+                   Plasmainventory=BloodProductStorage([(3, 2, 0)]),
+                   cl=[0.6, 0.3, 0.1], orderInterval=3)
+
+platoon2 = Platoon(loc=3, FWBinventory=BloodProductStorage([(4, 2, 0)]),
+                   Plasmainventory=BloodProductStorage([(2, 1, 0)]),
+                   cl=[0.5, 0.4, 0.1], orderInterval=4)
+
+platoons = [platoon1, platoon2]
+
+# Create Company instance
+company = Company(fwb_inventory, plasma_inventory, transports, platoons)
+
+# Test: Initialization
+print_test_result("Company Initialization",
+    company.FWBinventory == fwb_inventory and 
+    company.Plasmainventory == plasma_inventory and 
+    company.transportCapabilities == transports and 
+    company.platoonList == platoons)
+
+# Test: Transport Departure Countdown
+initial_departure = company.transportCapabilities[0].departureCount
+company.timeStep()  # Simulate a day
+print_test_result("Transport Departure Countdown Decreases",
+    company.transportCapabilities[0].departureCount == max(initial_departure - 1, 0))
+
+# Test: Inventory Timestep Reduces Expiry Days
+initial_fwb_expiry = company.FWBinventory.inventory[0][1]
+company.timeStep()  # Another day passes
+print_test_result("Inventory Expiry Days Reduce",
+    company.FWBinventory.inventory[0][1] == initial_fwb_expiry - 1)
+
+# Test: Adding Inventory
+company.addInventory('FWB', 10, 8)
+company.addInventory('Plasma', 5, 6)
+fwb_total = company.FWBinventory.avail()
+plasma_total = company.Plasmainventory.avail()
+print_test_result("Adding Inventory (FWB)", fwb_total == 45)  # 35 + 10 added
+print_test_result("Adding Inventory (Plasma)", plasma_total == 20)  # 15 + 5 added
+
+# Test: Finding Inventory
+fwbs, plasmas = company.findInventory(5, 5)
+print_test_result("Find Inventory (FWB)", sum([x[0] for x in fwbs]) >= 5)
+print_test_result("Find Inventory (Plasma)", sum([x[0] for x in plasmas]) >= 5)
+
+# Test: Adding Transport
+new_transport = Transport(sp=4, cap=150, count=2, name="Drone")
+company.addTransport(new_transport)
+print_test_result("Adding Transport",
+    new_transport in company.transportCapabilities)
+
+print("\nAll tests completed.")
+'''

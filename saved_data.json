@@ -1,0 +1,194 @@
+{
+    "days_1": 1,
+    "lon_0": "23.00",
+    "size_0": 20,
+    "lat_1": "42.00",
+    "lon_1": "40.00",
+    "transport_deliv_date_1_0": "2025-04-26",
+    "num_dates_0": 2,
+    "transport_capacity_1_1": 150,
+    "transport_dropoff_0_1": "21:30:00",
+    "method_1": "Truck",
+    "week_2_level_1": 2,
+    "transport_dropoff_0_0": "18:00:00",
+    "transport_deliv_date_1_2": "2025-05-08",
+    "med_log_company_info": {
+        "Company ID": 123,
+        "Number of Platoons": 1,
+        "Platoons": [
+            {
+                "Platoon ID": "1234",
+                "Size": 20,
+                "Days Away": 1
+            }
+        ]
+    },
+    "days_0": 1,
+    "med_platoon_id": 123,
+    "num_transports": 2,
+    "week_3_level_3": 0,
+    "week_0_level_0": 3,
+    "transport_dropoff_1_2": "09:30:00",
+    "transport_dropoff_1_1": "17:45:00",
+    "week_3_level_0": 5,
+    "week_0_level_2": 1,
+    "transport_info": [
+        {
+            "Method": "Helicopter",
+            "Coordinates": {
+                "Longitude": "23.00",
+                "Latitude": "23.00"
+            },
+            "Platoon ID": 1231,
+            "Days Away": 1,
+            "Delivery Schedule": [
+                {
+                    "Date": "2025-04-24",
+                    "Drop-off Time": "18:00",
+                    "Capacity (pints)": 200
+                },
+                {
+                    "Date": "2025-05-05",
+                    "Drop-off Time": "21:30",
+                    "Capacity (pints)": 400
+                }
+            ]
+        },
+        {
+            "Method": "Truck",
+            "Coordinates": {
+                "Longitude": "40.00",
+                "Latitude": "42.00"
+            },
+            "Platoon ID": 1228,
+            "Days Away": 5,
+            "Delivery Schedule": [
+                {
+                    "Date": "2025-04-26",
+                    "Drop-off Time": "15:00",
+                    "Capacity (pints)": 100
+                },
+                {
+                    "Date": "2025-05-05",
+                    "Drop-off Time": "17:45",
+                    "Capacity (pints)": 150
+                },
+                {
+                    "Date": "2025-05-08",
+                    "Drop-off Time": "09:30",
+                    "Capacity (pints)": 300
+                }
+            ]
+        }
+    ],
+    "transport_capacity_1_0": 100,
+    "size_1": 13,
+    "week_3_level_1": 0,
+    "user_data": [
+        {
+            "Length of Simulation in Days": 20,
+            "Medical Platoon ID": 123,
+            "Fresh Whole Blood Inventory on Hand (pints)": 400,
+            "Weekly Conflict Level Distribution": {
+                "Labels": [
+                    "1: Non-Combat",
+                    "2: Sustain Combat",
+                    "3: Assault Combat",
+                    "4: Extreme Combat"
+                ],
+                "Data": [
+                    [
+                        3,
+                        1,
+                        1,
+                        0
+                    ],
+                    [
+                        4,
+                        1,
+                        0,
+                        0
+                    ],
+                    [
+                        3,
+                        2,
+                        0,
+                        0
+                    ]
+                ]
+            }
+        },
+        {
+            "Length of Simulation in Days": 25,
+            "Medical Platoon ID": 123,
+            "Fresh Whole Blood Inventory on Hand (pints)": 400,
+            "Weekly Conflict Level Distribution": {
+                "Labels": [
+                    "1: Non-Combat",
+                    "2: Sustain Combat",
+                    "3: Assault Combat",
+                    "4: Extreme Combat"
+                ],
+                "Data": [
+                    [
+                        3,
+                        1,
+                        1,
+                        0
+                    ],
+                    [
+                        4,
+                        1,
+                        0,
+                        0
+                    ],
+                    [
+                        3,
+                        2,
+                        0,
+                        0
+                    ],
+                    [
+                        5,
+                        0,
+                        0,
+                        0
+                    ]
+                ]
+            }
+        }
+    ],
+    "pid_1": "1232",
+    "week_0_level_1": 1,
+    "simulation_days": 25,
+    "week_1_level_3": 0,
+    "transport_company_id": 123,
+    "method_0": "Helicopter",
+    "num_platoons": 1,
+    "week_3_level_2": 0,
+    "week_1_level_0": 4,
+    "pid_0": "1234",
+    "days_away_1": 5,
+    "transport_deliv_date_1_1": "2025-05-05",
+    "transport_capacity_0_1": 400,
+    "transport_dropoff_1_0": "15:00:00",
+    "week_2_level_3": 0,
+    "platoon_id_1": 1228,
+    "data_loaded": true,
+    "week_2_level_0": 3,
+    "week_1_level_2": 0,
+    "transport_deliv_date_0_1": "2025-05-05",
+    "lat_0": "23.00",
+    "week_2_level_2": 0,
+    "week_0_level_3": 0,
+    "transport_deliv_date_0_0": "2025-04-24",
+    "FormSubmitter:conflict_prediction_form-Submit": true,
+    "transport_capacity_0_0": 200,
+    "transport_capacity_1_2": 300,
+    "num_dates_1": 3,
+    "blood_inventory": 400,
+    "week_1_level_1": 1,
+    "platoon_id_0": 1231,
+    "days_away_0": 1,
+    "company_id": 123
+}

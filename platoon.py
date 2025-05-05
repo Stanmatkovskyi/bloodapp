@@ -19,14 +19,15 @@ class Platoon:
     cumulative_cl = np.cumsum(cl)
     self.combatLevel = np.searchsorted(cumulative_cl, p) #The combat level on the current day sampled from
     if avgInterval > maxInterval:
-      avgInterval = maxInterval  # Prevent invalid triangular distribution
+      avgInterval = maxInterval
 
+# Ensure avgInterval ≥ 1
     avgInterval = max(avgInterval, 1)
 
-  # Set minInterval valid for triangular distribution
+# Set minInterval valid for triangular distribution
     minInterval = max(1, avgInterval - (maxInterval - avgInterval))
 
-  # Final safety check: enforce min ≤ mode ≤ max
+# Final safety check: enforce left ≤ mode ≤ right
     mode = avgInterval
     left = min(minInterval, mode)
     right = max(maxInterval, mode)

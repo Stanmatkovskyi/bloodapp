@@ -128,10 +128,6 @@ def show_transport_info():
                     st.write(option)
     else:
         st.error("Invalid transport info format. Please re-enter transport details.")
-            with st.expander(f"Platoon {platoon['Platoon Number']} Summary"):
-                for idx, option in enumerate(platoon["Transport Options"]):
-                    st.markdown(f"**Transport {idx + 1}:**")
-                    st.write(option)
 
 def main():
     load_saved_data()

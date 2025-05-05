@@ -18,6 +18,9 @@ class Platoon:
     p = np.random.random()
     cumulative_cl = np.cumsum(cl)
     self.combatLevel = np.searchsorted(cumulative_cl, p) #The combat level on the current day sampled from
+    if avgInterval > maxInterval:
+      avgInterval = maxInterval  # Prevent invalid triangular distribution
+
     minInterval = max(1, avgInterval - (maxInterval - avgInterval))
     self.orderCountDown = round(np.random.triangular(minInterval, avgInterval, maxInterval))
     self.runningDemand = [0,0] #resets when an order is placed

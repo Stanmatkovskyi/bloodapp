@@ -31,7 +31,7 @@ def plot_daily_unmet_demand_include_zeros(df, platoonSize, save_path="figures/un
     plt.ylabel('Frequency (Number of Days)')
     plt.grid(axis='y')
     plt.tight_layout()
-    plt.savefig(save_path)
+    
     print(f"Plot saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -62,7 +62,7 @@ def plot_daily_unmet_demand(df, platoonSize, save_path="figures/unmet_demand_his
     plt.ylabel('Frequency (Number of Days)')
     plt.grid(axis='y')
     plt.tight_layout()
-    plt.savefig(save_path)
+    
     print(f"Plot saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -86,7 +86,7 @@ def plot_unmet_demand_boxplot(df, save_path="figures/platoon_unmet_boxplot.png",
     plt.ylabel('Total Units Unmet per Day')
     plt.grid(axis='y')
     plt.tight_layout()
-    plt.savefig(save_path)
+    
     print(f"Boxplot saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -102,7 +102,7 @@ def plot_transport_usage(df, save_path="figures/transport_usage_timeseries.png",
     plt.ylabel('Number of Transports in Use')
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(save_path)
+    
     print(f"Transport usage timeseries saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -118,7 +118,7 @@ def plot_transport_space_usage(df, save_path="figures/transport_space_usage_time
     plt.ylabel('Transport Space Used (Units)')
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(save_path)
+    
     print(f"Transport space usage timeseries saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -143,7 +143,7 @@ def plot_platoon_transport_histograms(df, save_path="figures/platoon_transport_u
         fig.delaxes(axes[j])
     fig.suptitle('Platoon Transport Usage Histograms', fontsize=16)
     plt.tight_layout(rect=[0, 0, 1, 0.95])
-    plt.savefig(save_path)
+    
     print(f"Combined histogram saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -168,7 +168,7 @@ def plot_platoon_transport_space_histograms(df, save_path="figures/platoon_trans
         fig.delaxes(axes[j])
     fig.suptitle('Platoon Transport Space Usage Histograms', fontsize=16)
     plt.tight_layout(rect=[0, 0, 1, 0.95])
-    plt.savefig(save_path)
+    
     print(f"Combined histogram saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -196,7 +196,7 @@ def plot_expired(df, platoon_sizes=None, save_path="figures/expired_timeseries_c
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(save_path)
+    
     print(f"Cumulative expired plot saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())
@@ -224,7 +224,7 @@ def plot_midway_blood_demand(platoons: list[Platoon], save_path="figures/midway_
     plt.ylabel('Frequency (Number of Days)')
     plt.grid(axis='y')
     plt.tight_layout()
-    plt.savefig(save_path)
+    
     print(f"Plot saved to {save_path}")
     if show_plot:
         st.pyplot(plt.gcf())

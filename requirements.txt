@@ -1,2 +1,6 @@
 streamlit
 streamlit-option-menu
+matplotlib
+seaborn
+numpy
+pandas

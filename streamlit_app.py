@@ -1,4 +1,5 @@
 import streamlit as st
+st.set_page_config(page_title="Blood Logistics Tool", layout="wide")
 import json
 import io
 import os
@@ -19,7 +20,7 @@ from visualize import (
 from platoon import Platoon
 from BloodProductStorage import BloodProductStorage
 
-st.set_page_config(page_title="Blood Logistics Tool", layout="wide")
+
 DATA_FILE = "saved_data.json"
 
 st.title("ONR Blood Management Support Tool")

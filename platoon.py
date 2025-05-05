@@ -21,21 +21,27 @@ class Platoon:
     if avgInterval > maxInterval:
       avgInterval = maxInterval
 
-# Ensure avgInterval ≥ 1
-    avgInterval = max(avgInterval, 1)
+    avgInterval = max(1, avgInterval)
+    maxInterval = max(avgInterval, maxInterval)  # ensure maxInterval ≥ avgInterval
 
-# Set minInterval valid for triangular distribution
-    minInterval = max(1, avgInterval - (maxInterval - avgInterval))
-
-# Final safety check: enforce left ≤ mode ≤ right
+# Compute triangular parameters safely
+    left = max(1, avgInterval - (maxInterval - avgInterval))
     mode = avgInterval
-    left = min(minInterval, mode)
-    right = max(maxInterval, mode)
+    right = maxInterval
 
-    self.orderCountDown = round(np.random.triangular(left, mode, right))
-    self.runningDemand = [0,0] #resets when an order is placed
-    self.avgOrderInterval = avgInterval
-    self.maxOrderInterval = maxInterval
+# Clamp to ensure: left ≤ mode ≤ right
+    left = min(left, mode)
+    right = max(right, mode)
+    mode = min(max(mode, left), right)
+
+    try:
+      self.orderCountDown = round(np.random.triangular(left, mode, right))
+    except ValueError as e:
+      print(f"[ERROR] Triangular params invalid: left={left}, mode={mode}, right={right}")
+      self.orderCountDown = round((left + right) / 2)
+      self.runningDemand = [0,0] #resets when an order is placed
+      self.avgOrderInterval = avgInterval
+      self.maxOrderInterval = maxInterval
 
 
   def updateCombatLevel(self):

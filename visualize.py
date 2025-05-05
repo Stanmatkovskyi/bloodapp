@@ -1,233 +1,147 @@
-import matplotlib.pyplot as plt
-import numpy as np
-from platoon import Platoon, PlatoonDemand
-import seaborn as sns
 import streamlit as st
+import json
+import io
+import os
+from datetime import date, time, datetime
+from streamlit_option_menu import option_menu
+from TransportFeedbackSim import TFSim
+from visualize import *
+from BloodProductStorage import BloodProductStorage
+from platoon import Platoon
 
-def plot_daily_unmet_demand_include_zeros(df, platoonSize, save_path="figures/unmet_demand_histogram.png",show_plot=True,clip_percentile=0.99,show_kde=True, use_log_scale=False):
-    df['Company_TotalUnmet'] = df['Company_FWBUnmet'] + df['Company_PlasmaUnmet']
-    company_size = sum(platoonSize)
-    df['Company_TotalUnmet'] = df['Company_TotalUnmet'] / company_size
-    total_unmet = df['Company_TotalUnmet']
-    zero_mask = total_unmet == 0
-    zero_count = zero_mask.sum()
-    total_days = len(df)
-    zero_percent = (zero_count / total_days) * 100
-    positive_unmet = total_unmet[~zero_mask]
-    cap = positive_unmet.quantile(clip_percentile)
-    clipped_data = positive_unmet[positive_unmet <= cap]
-    plt.figure(figsize=(10, 6))
-    bin_width = (clipped_data.max() - clipped_data.min()) / 30
-    zero_bin_edges = [-bin_width/2, bin_width/2]
-    plt.hist([0] * zero_count, bins=zero_bin_edges, color='gray', edgecolor='black', label='Zero unmet demand')
-    if show_kde:
-        sns.histplot(clipped_data, bins=30, kde=True, edgecolor='black', color='skyblue')
-    else:
-        plt.hist(clipped_data, bins=30, edgecolor='black', color='skyblue')
-    if use_log_scale:
-        plt.xscale('log')
-    plt.xlabel(f'Units Unmet per Day per Person (Capped at {clip_percentile * 100:.0f}th percentile)')
-    plt.title(f'Histogram of Daily Unmet Demand per Person (Company)\n{zero_percent:.2f}% of days had zero unmet demand')
-    plt.ylabel('Frequency (Number of Days)')
-    plt.grid(axis='y')
-    plt.tight_layout()
-    
-    print(f"Plot saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+st.set_page_config(page_title="Blood Logistics Tool", layout="wide")
 
-def plot_daily_unmet_demand(df, platoonSize, save_path="figures/unmet_demand_histogram.png",show_plot=True,clip_percentile=0.99,show_kde=True, use_log_scale=False):
-    df['Company_TotalUnmet'] = df['Company_FWBUnmet'] + df['Company_PlasmaUnmet']
-    company_size = sum(platoonSize)
-    df['Company_TotalUnmet'] = df['Company_TotalUnmet'] / company_size
-    total_unmet = df['Company_TotalUnmet']
-    zero_count = (total_unmet == 0).sum()
-    total_days = len(df)
-    zero_percent = (zero_count / total_days) * 100
-    positive_unmet = total_unmet[total_unmet > 0]
-    cap = positive_unmet.quantile(clip_percentile)
-    clipped_data = positive_unmet[positive_unmet <= cap]
-    plt.figure(figsize=(10, 6))
-    if show_kde:
-        sns.histplot(clipped_data, bins=30, kde=True, edgecolor='black', color='skyblue')
-    else:
-        plt.hist(clipped_data, bins=30, edgecolor='black', color='skyblue')
-    if use_log_scale:
-        plt.xscale('log')
-    plt.xlabel(f'Units Unmet per Day per Person (Capped at {clip_percentile * 100:.0f}th percentile)')
-    plt.title(f'Histogram of Daily Unmet Demand per Person (Company)\n{zero_percent:.2f}% of days had zero unmet demand')
-    plt.ylabel('Frequency (Number of Days)')
-    plt.grid(axis='y')
-    plt.tight_layout()
-    
-    print(f"Plot saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+DATA_FILE = "saved_data.json"
 
-def plot_unmet_demand_boxplot(df, save_path="figures/platoon_unmet_boxplot.png", show_plot=True):
-    unmet_cols = [col for col in df.columns if '_FWBUnmet' in col or '_PlasmaUnmet' in col]
-    platoon_names = sorted(set(col.split('_')[0] for col in unmet_cols))
-    unmet_by_platoon = []
-    for name in platoon_names:
-        fwb_col = f'{name}_FWBUnmet'
-        plasma_col = f'{name}_PlasmaUnmet'
-        total_unmet = df.get(fwb_col, 0) + df.get(plasma_col, 0)
-        unmet_by_platoon.append(total_unmet)
-    plt.figure(figsize=(10, 6))
-    plt.boxplot(unmet_by_platoon, labels=platoon_names, patch_artist=True)
-    plt.title('Box-and-Whisker Plot of Total Unmet Demand per Platoon')
-    plt.xlabel('Platoon')
-    plt.ylabel('Total Units Unmet per Day')
-    plt.grid(axis='y')
-    plt.tight_layout()
-    
-    print(f"Boxplot saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+def load_saved_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+        for k, v in data.items():
+            if not ("FormSubmitter:" in k or k.startswith("week_") or k.startswith("simulation_days") or k.startswith("med_platoon_id") or k.startswith("blood_inventory")):
+                st.session_state[k] = v
 
-def plot_transport_usage(df, save_path="figures/transport_usage_timeseries.png", show_plot=True):
-    plt.figure(figsize=(10, 6))
-    plt.plot(df.index, df['Company_TransDays'], marker='o', linestyle='-', color='darkgreen')
-    plt.title('Company-Wide Transport Usage Over Time')
-    plt.xlabel('Time Step (Day)')
-    plt.ylabel('Number of Transports in Use')
-    plt.grid(True)
-    plt.tight_layout()
-    
-    print(f"Transport usage timeseries saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+def save_session_state():
+    to_save = {k: v for k, v in st.session_state.items() if not k.startswith("_")}
+    with open(DATA_FILE, "w") as f:
+        json.dump(to_save, f, indent=4, default=str)
 
-def plot_transport_space_usage(df, save_path="figures/transport_space_usage_timeseries.png", show_plot=True):
-    plt.figure(figsize=(10, 6))
-    plt.plot(df.index, df['Company_TransSpace'], marker='o', linestyle='-', color='darkblue')
-    plt.title('Company-Wide Transport Space Used Over Time')
-    plt.xlabel('Time Step (Day)')
-    plt.ylabel('Transport Space Used (Units)')
-    plt.grid(True)
-    plt.tight_layout()
-    
-    print(f"Transport space usage timeseries saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+def show_home():
+    st.header("Welcome to the Blood Logistics Tool")
+    name = st.text_input("Enter your name", value=st.session_state.get("user_name", ""))
+    st.session_state["user_name"] = name
+    if name:
+        st.success(f"Welcome, {name}! Please navigate to the pages on the left to proceed.")
+    save_session_state()
 
-def plot_platoon_transport_histograms(df, save_path="figures/platoon_transport_usage_combined.png", show_plot=True):
-    trans_cols = [col for col in df.columns if '_TransDays' in col and col.startswith('Platoon')]
-    num_platoons = len(trans_cols)
-    cols = 2
-    rows = (num_platoons + cols - 1) // cols
-    fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 4), sharey=False)
-    axes = axes.flatten()
-    for i, col in enumerate(trans_cols):
-        ax = axes[i]
-        ax.hist(df[col], bins=range(int(df[col].max()) + 2), edgecolor='black', color='orange')
-        ax.set_title(f'{col.split("_")[0]}')
-        ax.set_xlabel('Transports Used per Day')
-        ax.set_ylabel('Days')
-    for j in range(i+1, len(axes)):
-        fig.delaxes(axes[j])
-    fig.suptitle('Platoon Transport Usage Histograms', fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-    
-    print(f"Combined histogram saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+def show_med_log_company():
+    st.header("Medical Logistics Company Page")
+    company_id = st.number_input("Medical Logistics Company ID", min_value=0, step=1, value=st.session_state.get("company_id", 0))
+    st.session_state["company_id"] = company_id
+    num_platoons = st.number_input("Number of Platoons", min_value=0, step=1, value=st.session_state.get("num_platoons", 0))
+    st.session_state["num_platoons"] = num_platoons
+    platoons = []
+    for i in range(int(num_platoons)):
+        st.subheader(f"Platoon {i+1}")
+        pid = st.text_input(f"Platoon ID {i+1}", value=st.session_state.get(f"pid_{i}", ""), key=f"pid_{i}")
+        size = st.number_input(f"Platoon Size {i+1}", min_value=0, value=st.session_state.get(f"size_{i}", 0), key=f"size_{i}")
+        days_away = st.number_input(f"Days Away from Home Base (Platoon {i+1})", min_value=0, value=st.session_state.get(f"days_{i}", 0), key=f"days_{i}")
+        platoons.append({"Platoon ID": pid, "Size": size, "Days Away": days_away})
 
-def plot_platoon_transport_space_histograms(df, save_path="figures/platoon_transport_space_usage_combined.png", show_plot=True):
-    trans_cols = [col for col in df.columns if '_TransSpace' in col and col.startswith('Platoon')]
-    num_platoons = len(trans_cols)
-    cols = 2
-    rows = (num_platoons + cols - 1) // cols
-    fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 4), sharey=False)
-    axes = axes.flatten()
-    for i, col in enumerate(trans_cols):
-        ax = axes[i]
-        ax.hist(df[col], bins='auto', edgecolor='black', color='orange')
-        ax.set_title(f'{col.split("_")[0]}')
-        ax.set_xlabel('Transport Space Used per Day')
-        ax.set_ylabel('Days')
-    for j in range(i+1, len(axes)):
-        fig.delaxes(axes[j])
-    fig.suptitle('Platoon Transport Space Usage Histograms', fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-    
-    print(f"Combined histogram saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+    if st.button("Save Medical Logistics Company Info"):
+        st.session_state["med_log_company_info"] = {
+            "Company ID": company_id,
+            "Number of Platoons": num_platoons,
+            "Platoons": platoons
+        }
+        save_session_state()
+        st.success("Medical Logistics Company info saved!")
 
-def plot_expired(df, platoon_sizes=None, save_path="figures/expired_timeseries_cumulative.png", show_plot=True):
-    daily_expired = df['Company_FWBExpired'] + df['Company_PlasmaExpired']
-    if platoon_sizes is not None:
-        total_people = sum(platoon_sizes)
-        daily_expired = daily_expired / total_people
-        ylabel = 'Expired Units per Person'
-        title = 'Cumulative Expired Blood Units per Person Over Time'
-    else:
-        ylabel = 'Expired Units'
-        title = 'Cumulative Expired Blood Units Over Time'
-    cumulative_expired = daily_expired.cumsum()
-    plt.figure(figsize=(12, 6))
-    plt.bar(df.index, daily_expired, color='lightcoral', alpha=0.3, label='Daily Expired')
-    plt.plot(df.index, cumulative_expired, marker='o', linestyle='-', color='crimson', label='Cumulative Expired')
-    plt.title(title)
-    plt.xlabel('Time Step (Day)')
-    plt.ylabel(ylabel)
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    
-    print(f"Cumulative expired plot saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+def show_transport_info():
+    st.header("Transport Information Page")
+    company_id = st.number_input("Medical Company ID", min_value=0, step=1, value=st.session_state.get("transport_company_id", 0), key="transport_company_id")
+    num_platoons = st.number_input("Number of Platoons", min_value=0, step=1, value=st.session_state.get("transport_num_platoons", 0), key="transport_num_platoons")
+    transport_methods = ["Helicopter", "Truck", "Boat", "Drone", "Airplane"]
+    all_platoon_transports = []
+    for p in range(int(num_platoons)):
+        st.subheader(f"Platoon {p+1} Transportation Info")
+        num_transports = st.number_input(f"Number of Transportation Options for Platoon {p+1}", min_value=0, step=1, value=st.session_state.get(f"num_transports_{p}", 0), key=f"num_transports_{p}")
+        platoon_transports = []
+        for i in range(int(num_transports)):
+            method = st.selectbox(f"Select Transportation Method", transport_methods, index=transport_methods.index(st.session_state.get(f"method_{p}_{i}", "Helicopter")), key=f"method_{p}_{i}")
+            days_away = st.number_input(f"Days Away from Supply Base", min_value=0.0, step=0.1, value=st.session_state.get(f"days_away_{p}_{i}", 0.0), key=f"days_away_{p}_{i}")
+            avg_days_between = st.number_input(f"Average Days Between Restocks", min_value=0.0, step=0.1, value=st.session_state.get(f"avg_days_{p}_{i}", 0.0), key=f"avg_days_{p}_{i}")
+            max_days_between = st.number_input(f"Maximum Days Between Restocks", min_value=0.0, step=0.1, value=st.session_state.get(f"max_days_{p}_{i}", 0.0), key=f"max_days_{p}_{i}")
+            transport_capacity = st.number_input(f"Transport Capacity (pints)", min_value=0, step=1, value=st.session_state.get(f"transport_capacity_{p}_{i}", 0), key=f"transport_capacity_{p}_{i}")
+            platoon_transports.append({
+                "Method": method,
+                "Days Away from Base": days_away,
+                "Average Days Between Restocks": avg_days_between,
+                "Maximum Days Between Restocks": max_days_between,
+                "Transport Capacity (pints)": transport_capacity
+            })
+        all_platoon_transports.append({"Platoon Number": p + 1, "Transport Options": platoon_transports})
+    if st.button("Submit Transport Info"):
+        st.session_state["transport_info"] = {"Company ID": company_id, "Platoons": all_platoon_transports}
+        save_session_state()
+        st.success("Transport data saved!")
 
-def plot_midway_blood_demand(platoons: list[Platoon], save_path="figures/midway_blood_demand.png", show_plot=True):
-    demand = []
-    for platoon in platoons:
-        for i in range(100):
-            platoon.updateCombatLevel()
-            cl = platoon.combatLevel
-            if cl < 0 or cl >= 4:
-                print(f"[ERROR] Invalid combat level {cl} for platoon. List: {platoon.combatLevelList}")
-            demand.append(PlatoonDemand(platoon)[0])
-    demand = np.array(demand)
-    zeros = np.count_nonzero(demand == 0)
-    perZeros = zeros / len(demand) * 100
-    nonZeroDemand = demand[demand != 0]
-    plt.figure(figsize=(10, 6))
-    plt.hist(nonZeroDemand, bins=30, edgecolor='black', color='skyblue')
-    plt.title('Histogram of Daily Demand (Company)\n' + f'{perZeros:.2f}% of days had no demand')
-    plt.xlabel('Total Units per Day')
-    plt.ylabel('Frequency (Number of Days)')
-    plt.grid(axis='y')
-    plt.tight_layout()
-    
-    print(f"Plot saved to {save_path}")
-    if show_plot:
-        st.pyplot(plt.gcf())
-        plt.close()
-    else:
-        plt.close()
+def show_conflict_prediction():
+    st.header("Conflict Prediction Page")
+    st.session_state.setdefault("run_sim", False)
+    with st.form(key="conflict_prediction_form"):
+        T = st.number_input("Length of Simulation in Days:", min_value=1, value=15, key="simulation_days")
+        n = st.number_input("Number of Platoons:", min_value=1, value=2)
+        platoonSize = [50] * int(n)
+        l = [3, 2]
+        avgOrderInterval = [3, 4]
+        maxOrderInterval = [5, 7]
+        transportSpeed = [1] * int(n)
+        transportCapacity = [1000] * int(n)
+        TargetInv = [[1000, 40]] * int(n)
+        PI = [[] for _ in range(int(n))]
+        CI = [['FWB', 2000, 40], ['Plasma', 2000, 300]]
+        CLMatrix = [[0.5, 0.2, 0.1, 0.1, 0.1]] * int(n)
+        submit = st.form_submit_button("Run Full Simulation")
+        if submit:
+            st.session_state.run_sim = True
+
+    if st.session_state.run_sim:
+        try:
+            platoons = [Platoon(l[i], BloodProductStorage([]), BloodProductStorage([]), CLMatrix[i], avgOrderInterval[i], maxOrderInterval[i], TargetInv[i]) for i in range(n)]
+            plot_midway_blood_demand(platoons, show_plot=True)
+            avg_df, total_df = TFSim(T, n, l, avgOrderInterval, maxOrderInterval, transportSpeed, transportCapacity, TargetInv, PI, CI, CLMatrix, platoonSize)
+            st.subheader("Simulation Results")
+            st.write("### Average Results")
+            st.dataframe(avg_df)
+            st.write("### Visualizations")
+            plot_unmet_demand_boxplot(avg_df)
+            plot_transport_usage(avg_df)
+            plot_expired(avg_df, platoon_sizes=platoonSize)
+            plot_daily_unmet_demand_include_zeros(avg_df, platoonSize)
+            plot_platoon_transport_histograms(avg_df)
+            plot_platoon_transport_space_histograms(avg_df)
+        except Exception as e:
+            st.error(f"Simulation failed: {e}")
+
+def main():
+    load_saved_data()
+    with st.sidebar:
+        selected = option_menu(
+            menu_title="Main Menu",
+            options=["Home", "Medical Logistics Company", "Transport Info", "Conflict Prediction"],
+            icons=["house", "hospital", "truck", "exclamation-triangle"],
+            menu_icon="cast",
+            default_index=0
+        )
+    if selected == "Home":
+        show_home()
+    elif selected == "Medical Logistics Company":
+        show_med_log_company()
+    elif selected == "Transport Info":
+        show_transport_info()
+    elif selected == "Conflict Prediction":
+        show_conflict_prediction()
+
+if __name__ == "__main__":
+    main()

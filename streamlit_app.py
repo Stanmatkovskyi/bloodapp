@@ -118,7 +118,7 @@ def show_transport_info():
         st.success("Transport data saved!")
 
     if "transport_info" in st.session_state:
-    transport_data = st.session_state.get("transport_info", {})
+        transport_data = st.session_state.get("transport_info", {})
     if isinstance(transport_data, dict):
         st.subheader("Platoon Summary")
         for platoon in transport_data.get("Platoons", []):

@@ -129,6 +129,105 @@ def show_transport_info():
     else:
         st.error("Invalid transport info format. Please re-enter transport details.")
 
+def show_conflict_prediction():
+    st.header("Conflict Prediction Page")
+
+    if "user_data" not in st.session_state:
+        st.session_state.user_data = []
+
+    with st.form(key="conflict_prediction_form"):
+        simulation_days = st.number_input("Length of Simulation in Days:", min_value=1, value=15, key="simulation_days")
+        med_platoon_id = st.number_input("Medical Platoon ID:", min_value=0, value=0, key="med_platoon_id")
+        blood_inventory = st.number_input("Fresh Whole Blood Inventory on Hand (pints):", min_value=0, value=0, key="blood_inventory")
+        st.markdown("### Define Conflict Assessment Ranges")
+        num_ranges = st.number_input("Number of Ranges", min_value=1, value=3, key="num_ranges")
+
+        day_ranges, conflict_matrix = [], []
+        conflict_level_labels = ["1: Non-Combat", "2: Sustain Combat", "3: Assault Combat", "4: Extreme Combat"]
+        last_end = 0
+
+        for i in range(int(num_ranges)):
+            st.markdown(f"**Range {i+1}**")
+            start_day = st.number_input(f"Start Day of Range {i+1}", min_value=1, value=last_end + 1, key=f"start_day_{i}")
+            end_day = st.number_input(f"End Day of Range {i+1}", min_value=start_day, value=min(simulation_days, start_day + 4), key=f"end_day_{i}")
+            last_end = end_day
+            day_ranges.append((start_day, end_day))
+            range_data, total = [], 0
+
+            for level in range(4):
+                val = st.slider(f"{conflict_level_labels[level]} (0–5):", min_value=0, max_value=5, step=1, key=f"range_{i}_level_{level}")
+                total += val
+                range_data.append(val)
+
+            if total != 5:
+                st.error(f"Range {i+1} ({start_day}–{end_day}): conflict levels must sum to 5 (currently {total}).")
+            conflict_matrix.append(range_data)
+
+        submit = st.form_submit_button("Submit")
+
+    if submit:
+        new_entry = {
+            "Length of Simulation in Days": simulation_days,
+            "Medical Platoon ID": med_platoon_id,
+            "Fresh Whole Blood Inventory on Hand (pints)": blood_inventory,
+            "Conflict Ranges": [
+                {"Days": f"{start}-{end}", "Conflict Levels": {"Labels": conflict_level_labels, "Distribution": dist}}
+                for (start, end), dist in zip(day_ranges, conflict_matrix)
+            ]
+        }
+        st.session_state.user_data.append(new_entry)
+        save_session_state()
+        st.success("Data added successfully!")
+
+        if "med_log_company_info" in st.session_state and "transport_info" in st.session_state:
+            med_info = st.session_state["med_log_company_info"]
+            n = med_info["Number of Platoons"]
+            l = [p["Days Away"] for p in med_info["Platoons"]]
+            avgOrderInterval = [1] * n
+            maxOrderInterval = [1] * n
+            TargetInv = [[1000, 40] for _ in range(n)]
+            PI = [[] for _ in range(n)]
+            CI = st.session_state.company_inventory
+            CLMatrix = [[1, 0, 0, 0, 0] for _ in range(n)]
+            platoonSize = [p["Size"] for p in med_info["Platoons"]]
+            platoons = [Platoon(l[i], BloodProductStorage([]), BloodProductStorage([]), CLMatrix[i], avgOrderInterval[i], maxOrderInterval[i], TargetInv[i]) for i in range(n)]
+            st.subheader("Preview: Midway Blood Demand Distribution")
+            plot_midway_blood_demand(platoons, show_plot=True)
+
+        if st.button("Run Full Simulation"):
+            med_info = st.session_state["med_log_company_info"]
+            transport_info = st.session_state["transport_info"]
+            n = med_info["Number of Platoons"]
+            l = [p["Days Away"] for p in med_info["Platoons"]]
+            avgOrderInterval, maxOrderInterval, transportCapacity = [], [], []
+            for p in transport_info["Platoons"]:
+                t = p["Transport Options"][0]
+                avgOrderInterval.append(t["Average Days Between Restocks"])
+                maxOrderInterval.append(t["Maximum Days Between Restocks"])
+                transportCapacity.append(t["Transport Capacity (pints)"])
+            platoonSize = [p["Size"] for p in med_info["Platoons"]]
+            TargetInv = [[1000, 40] for _ in range(n)]
+            PI = [[] for _ in range(n)]
+            CI = st.session_state.company_inventory
+            CLMatrix = []
+            for _ in range(n):
+                dist = [0]*5
+                for r in st.session_state["user_data"][-1]["Conflict Ranges"]:
+                    for j, val in enumerate(r["Conflict Levels"]["Distribution"]):
+                        dist[j] += val
+                total = sum(dist)
+                CLMatrix.append([x / total for x in dist])
+            T = st.session_state["user_data"][-1]["Length of Simulation in Days"]
+            avgDF, totalDF = TFSim(T, n, l, avgOrderInterval, maxOrderInterval, [1]*n, transportCapacity, TargetInv, PI, CI, CLMatrix, platoonSize)
+            st.subheader("Simulation Results")
+            plot_daily_unmet_demand_include_zeros(avgDF, platoonSize, show_plot=True)
+            plot_unmet_demand_boxplot(avgDF, show_plot=True)
+            plot_transport_usage(avgDF, show_plot=True)
+            plot_transport_space_usage(avgDF, show_plot=True)
+            plot_platoon_transport_histograms(avgDF, show_plot=True)
+            plot_platoon_transport_space_histograms(avgDF, show_plot=True)
+            plot_expired(avgDF, platoonSize, show_plot=True)
+
 def main():
     load_saved_data()
     with st.sidebar:

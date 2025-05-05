@@ -63,6 +63,9 @@ def show_med_log_company():
 def show_transport_info():
     st.header("Transport Information Page")
 
+    if isinstance(st.session_state.get("transport_info"), list):
+        del st.session_state["transport_info"]
+
     company_id = st.number_input("Medical Company ID", min_value=0, step=1,
                                  value=st.session_state.get("transport_company_id", 0),
                                  key="transport_company_id")

@@ -93,21 +93,46 @@ def show_conflict_prediction():
         T = st.number_input("Length of Simulation in Days:", min_value=1, value=15, key="simulation_days")
         n = st.number_input("Number of Platoons:", min_value=1, value=2)
         platoonSize = [50] * int(n)
-        l = [3, 2]
-        avgOrderInterval = [3, 4]
-        maxOrderInterval = [5, 7]
-        transportSpeed = [1] * int(n)
-        transportCapacity = [1000] * int(n)
+        l = [3] * int(n)
+        avgOrderInterval = [3] * int(n)
+        maxOrderInterval = [5] * int(n)
         TargetInv = [[1000, 40]] * int(n)
         PI = [[] for _ in range(int(n))]  # Empty starting inventory
         CI = [['FWB', 2000, 40], ['Plasma', 2000, 300]]
-        CLMatrix = [[0.5, 0.2, 0.1, 0.1, 0.1]] * int(n)
+
+        st.markdown("### Define Conflict Ranges and Levels")
+        num_ranges = st.number_input("Number of Day Ranges", min_value=1, value=3, key="num_ranges")
+        day_ranges = []
+        conflict_matrix = []
+        labels = ["1: Non-Combat", "2: Sustain Combat", "3: Assault Combat", "4: Extreme Combat", "5: Catastrophic"]
+        last_end = 0
+        for i in range(num_ranges):
+            start_day = st.number_input(f"Start Day of Range {i+1}", min_value=1, value=last_end + 1, key=f"start_day_{i}")
+            end_day = st.number_input(f"End Day of Range {i+1}", min_value=start_day, value=start_day + 4, key=f"end_day_{i}")
+            last_end = end_day
+            day_ranges.append((start_day, end_day))
+            st.markdown("_Set the probability of each conflict level (must sum to 1.0)_")
+            levels = [st.number_input(f"{label}", min_value=0.0, max_value=1.0, step=0.01, value=0.0, key=f"range_{i}_level_{j}") for j, label in enumerate(labels)]
+            if abs(sum(levels) - 1.0) > 1e-3:
+                st.error(f"Range {i+1} probabilities must sum to 1.0")
+            conflict_matrix.append(levels)
+
         submit = st.form_submit_button("Run Full Simulation")
         if submit:
             st.session_state.run_sim = True
+            st.session_state.conflict_matrix = conflict_matrix
+            st.session_state.ranges = day_ranges
 
     if st.session_state.run_sim:
         try:
+            # Expand conflict matrix to CLMatrix by day
+            CLMatrix = []
+            for start, end in st.session_state.ranges:
+                for _ in range(start, end + 1):
+                    CLMatrix.append(st.session_state.conflict_matrix[st.session_state.ranges.index((start, end))])
+            CLMatrix = [CLMatrix[min(i, len(CLMatrix)-1)] for i in range(int(n))]
+            transportSpeed = [1] * int(n)
+            transportCapacity = [1000] * int(n)
             platoons = [Platoon(l[i], BloodProductStorage([]), BloodProductStorage([]), CLMatrix[i], avgOrderInterval[i], maxOrderInterval[i], TargetInv[i]) for i in range(n)]
             plot_midway_blood_demand(platoons, show_plot=True)
             avg_df, total_df = TFSim(T, n, l, avgOrderInterval, maxOrderInterval, transportSpeed, transportCapacity, TargetInv, PI, CI, CLMatrix, platoonSize)

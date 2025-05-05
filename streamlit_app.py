@@ -118,10 +118,16 @@ def show_transport_info():
         st.success("Transport data saved!")
 
     if "transport_info" in st.session_state:
-        transport_data = st.session_state.get("transport_info", {})
-        if isinstance(transport_data, dict):
-            st.subheader("Platoon Summary")
-            for platoon in transport_data.get("Platoons", []):
+    transport_data = st.session_state.get("transport_info", {})
+    if isinstance(transport_data, dict):
+        st.subheader("Platoon Summary")
+        for platoon in transport_data.get("Platoons", []):
+            with st.expander(f"Platoon {platoon['Platoon Number']} Summary"):
+                for idx, option in enumerate(platoon["Transport Options"]):
+                    st.markdown(f"**Transport {idx + 1}:**")
+                    st.write(option)
+    else:
+        st.error("Invalid transport info format. Please re-enter transport details.")
             with st.expander(f"Platoon {platoon['Platoon Number']} Summary"):
                 for idx, option in enumerate(platoon["Transport Options"]):
                     st.markdown(f"**Transport {idx + 1}:**")
